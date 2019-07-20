@@ -4,7 +4,6 @@
      ;(scheme list)
      (srfi 1)
      (scheme cxr)
-     (scheme eval);
      )
    (export sxml->xml-string)
 
@@ -32,74 +31,63 @@
           (symbol? (car sxml))))
           
 
-     (define (sxml->xml-string sxml . opt)
-       (let* ((env (if (null? opt) '() (car opt)))
-              (env-contains? (if (null? env) '() (cadr (assq 'contains? env))))
-              (eval-env (if (null? env) '() (cadr (assq 'eval-env env))))
-              (convert-env (if (null? env) '() (cadr (assq 'convert-env env)))))
+     (define (sxml->xml-string sxml)
+       (let loop ((sxml sxml))
+          (cond
+            ((string? sxml) sxml)
+            ((%top? sxml)
+               (apply 
+                 string-append 
+                 (map loop (cdr sxml))))
+            ((%PI? sxml)
+               (string-append
+                 "<?"
+                 (symbol->string (cadr sxml))
+                 " "
+                 (caddr sxml)
+                 ">"))
+            ((%element? sxml)
+             (let* ((have-attribute 
+                      (%attribute-list? (cadr sxml)))
+                    (children (if have-attribute (cddr sxml) (cdr sxml)))
+                    (attribute
+                        (if have-attribute
+                           (let loop ((attribute (cdadr sxml))
+                                      (res ""))
+                             (if  (null? attribute)
+                               res
+                               (loop
+                                 (cdr attribute)
+                                 (string-append
+                                     res
+                                     " "
+                                     (symbol->string (caar  attribute))
+                                     "="
+                                     "\""
+                                     (if (null? (cdar attribute)) "" (cadar attribute))
+                                     "\""))))
+                           "")))
 
-          (let loop ((sxml sxml))
-             (cond
-               ((string? sxml) sxml)
-               ((and (not (null? env))
-                     (env-contains? convert-env (car sxml)))
+                   (if (null? children)
+                     (string-append 
+                       "<"
+                      (symbol->string  (car sxml))
+                      attribute
+                      "/>")
 
-                (let ((eval-res
-                        (eval sxml eval-env)))
-                  (loop eval-res)))
-               ((%top? sxml)
-                  (apply 
-                    string-append 
-                    (map loop (cdr sxml))))
-               ((%PI? sxml)
-                  (string-append
-                    "<?"
-                    (symbol->string (cadr sxml))
-                    " "
-                    (caddr sxml)
-                    ">"))
-               ((%element? sxml)
-                (let* ((have-attribute 
-                       (%attribute-list? (cadr sxml)))
-                       (children (if have-attribute (cddr sxml) (cdr sxml)))
-                       (attribute
-                           (if have-attribute
-                              (let loop ((attribute (cdadr sxml))
-                                         (res ""))
-                                (if  (null? attribute)
-                                  res
-                                  (loop
-                                    (cdr attribute)
-                                    (string-append
-                                        res
-                                        " "
-                                        (symbol->string (caar  attribute))
-                                        "="
-                                        "\""
-                                        (if (null? (cdar attribute)) "" (cadar attribute))
-                                        "\""))))
-                              "")))
-
-                      (if (null? children)
-                        (string-append 
-                          "<"
-                         (symbol->string  (car sxml))
-                         attribute
-                         "/>")
-
-                       (string-append
-                         "<"
-                         (symbol->string  (car sxml))
-                         attribute
-                         ">"
-                         (apply string-append (map loop (if have-attribute (cddr sxml) (cdr sxml))))
-                         "</"
-                         (symbol->string  (car sxml))
-                         ">"
-                         ))))
-               (else
-                 (error "ERROR:invalid sxml" sxml))
-               ))
+                    (string-append
+                      "<"
+                      (symbol->string  (car sxml))
+                      attribute
+                      ">"
+                      (apply string-append (map loop (if have-attribute (cddr sxml) (cdr sxml))))
+                      "</"
+                      (symbol->string  (car sxml))
+                      ">"
+                      ))))
+            (else
+              (error "ERROR:invalid sxml" sxml))
+            ))
        )
-     )))
+     ))
 
