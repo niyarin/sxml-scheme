@@ -46,6 +46,8 @@
                  " "
                  (caddr sxml)
                  ">"))
+            ((and (%element? sxml) (eq? (car sxml) '*COMMENT*))
+               "")
             ((%element? sxml)
              (let* ((have-attribute 
                       (%attribute-list? (cadr sxml)))
@@ -91,3 +93,7 @@
        )
      ))
 
+;(import (scheme base)(scheme write)(niyarin sxml))
+;(display
+;   (sxml->xml-string '(html (body (div (@ (id "foo")) (*COMMENT* "piyoooo") "test")))))
+;(newline)
