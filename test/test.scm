@@ -12,7 +12,13 @@
           (check
             (sxml->xml-string
               '(br))
-            => "<br/>")))))
+            => "<br/>")
+          (check
+            (sxml->xml-string
+              '(WEIGHT (@ (unit "pound"))
+                  (NET (@ (certified)) 67)
+                  (GROSS 95)))
+             => "<WEIGHT unit=\"pound\"><NET certified=\"certified\">67</NET><GROSS>95</GROSS></WEIGHT>")))))
 
 (import (scheme base)
         (srfi 78)

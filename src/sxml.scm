@@ -19,10 +19,19 @@
       (define (%element? sxml)
         (and (list? sxml) (not (null? sxml)) (symbol? (car sxml))))
 
+
+     (define (%atom-convert sxml)
+       (cond
+         ((string? sxml) sxml)
+         ((number? sxml) (number->string sxml))
+         ((symbol? sxml) (symbol->string sxml))
+         (else (error "invalid atom" sxml))))
+
      (define (sxml->xml-string sxml)
        (let loop ((sxml sxml))
           (cond
             ((string? sxml) sxml)
+            ((number? sxml) (number->string sxml))
             ((%top? sxml)
                (apply string-append (map loop (cdr sxml))))
             ((%PI? sxml)
@@ -51,7 +60,9 @@
                                      (symbol->string (caar  attribute))
                                      "="
                                      "\""
-                                     (if (null? (cdar attribute)) "" (cadar attribute))
+                                     (if (null? (cdar attribute))
+                                       (%atom-convert (caar attribute))
+                                       (%atom-convert (cadar attribute)))
                                      "\""))))
                            "")))
 
@@ -72,4 +83,5 @@
                       (symbol->string  (car sxml))
                       ">"))))
             (else
-              (error "ERROR:invalid sxml" sxml)))))))
+              (error "ERROR:invalid sxml" sxml)))))
+     (define (xml-string->sxml))))
