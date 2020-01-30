@@ -18,7 +18,11 @@
               '(WEIGHT (@ (unit "pound"))
                   (NET (@ (certified)) 67)
                   (GROSS 95)))
-             => "<WEIGHT unit=\"pound\"><NET certified=\"certified\">67</NET><GROSS>95</GROSS></WEIGHT>")))))
+             => "<WEIGHT unit=\"pound\"><NET certified=\"certified\">67</NET><GROSS>95</GROSS></WEIGHT>")
+          (check
+            (sxml->xml-string
+              '(*COMMENT* "TEST"))
+             => "")))))
 
 (import (scheme base)
         (srfi 78)

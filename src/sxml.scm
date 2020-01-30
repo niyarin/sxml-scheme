@@ -13,6 +13,9 @@
      (define (%top? sxml)
        (and (list? sxml) (eq? (car sxml) '*TOP*)))
 
+     (define (%comment? sxml)
+       (and (list? sxml) (eq? (car sxml) '*COMMENT*)))
+
      (define (%PI? sxml)
        (and (list? sxml) (eq? (car sxml) '*PI*)))
 
@@ -34,6 +37,7 @@
             ((number? sxml) (number->string sxml))
             ((%top? sxml)
                (apply string-append (map loop (cdr sxml))))
+            ((%comment? sxml) "")
             ((%PI? sxml)
                (string-append
                  "<?"
