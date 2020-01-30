@@ -2,12 +2,13 @@
    (import
      (scheme base)
      (srfi 1) ;(scheme list)
+     (scheme write);
      (scheme cxr))
    (export sxml->xml-string)
 
    (begin
      (define (%attribute-list? sxml)
-       (and (list? sxml) (eq? (car sxml) '@)))
+       (and (list? sxml) (not (null? sxml)) (eq? (car sxml) '@)))
 
      (define (%top? sxml)
        (and (list? sxml) (eq? (car sxml) '*TOP*)))
@@ -16,7 +17,7 @@
        (and (list? sxml) (eq? (car sxml) '*PI*)))
 
       (define (%element? sxml)
-        (and (list? sxml) (pair? (cdr sxml)) (symbol? (car sxml))))
+        (and (list? sxml) (not (null? sxml)) (symbol? (car sxml))))
 
      (define (sxml->xml-string sxml)
        (let loop ((sxml sxml))
@@ -33,7 +34,8 @@
                  ">"))
             ((%element? sxml)
              (let* ((have-attribute
-                      (%attribute-list? (cadr sxml)))
+                      (and (not (null? (cdr sxml)))
+                           (%attribute-list? (cadr sxml))))
                     (children (if have-attribute (cddr sxml) (cdr sxml)))
                     (attribute
                         (if have-attribute
