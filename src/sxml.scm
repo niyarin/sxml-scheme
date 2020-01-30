@@ -1,44 +1,29 @@
 (define-library (niyarin sxml)
-   (import 
-     (scheme base) 
-     ;(scheme list)
-     (srfi 1)
-     (scheme cxr)
-     )
+   (import
+     (scheme base)
+     (srfi 1) ;(scheme list)
+     (scheme cxr))
    (export sxml->xml-string)
 
    (begin
-      
      (define (%attribute-list? sxml)
-       (and 
-         (list? sxml)
-         (eq? (car sxml) '@)))
+       (and (list? sxml) (eq? (car sxml) '@)))
 
      (define (%top? sxml)
-       (and
-         (list? sxml)
-         (eq? (car sxml) '*TOP*)))
+       (and (list? sxml) (eq? (car sxml) '*TOP*)))
 
      (define (%PI? sxml)
-       (and
-         (list? sxml)
-         (eq? (car sxml) '*PI*)))
+       (and (list? sxml) (eq? (car sxml) '*PI*)))
 
       (define (%element? sxml)
-        (and
-          (list? sxml)
-          (pair? (cdr sxml))
-          (symbol? (car sxml))))
-          
+        (and (list? sxml) (pair? (cdr sxml)) (symbol? (car sxml))))
 
      (define (sxml->xml-string sxml)
        (let loop ((sxml sxml))
           (cond
             ((string? sxml) sxml)
             ((%top? sxml)
-               (apply 
-                 string-append 
-                 (map loop (cdr sxml))))
+               (apply string-append (map loop (cdr sxml))))
             ((%PI? sxml)
                (string-append
                  "<?"
@@ -47,7 +32,7 @@
                  (caddr sxml)
                  ">"))
             ((%element? sxml)
-             (let* ((have-attribute 
+             (let* ((have-attribute
                       (%attribute-list? (cadr sxml)))
                     (children (if have-attribute (cddr sxml) (cdr sxml)))
                     (attribute
@@ -69,7 +54,7 @@
                            "")))
 
                    (if (null? children)
-                     (string-append 
+                     (string-append
                        "<"
                       (symbol->string  (car sxml))
                       attribute
@@ -83,11 +68,6 @@
                       (apply string-append (map loop (if have-attribute (cddr sxml) (cdr sxml))))
                       "</"
                       (symbol->string  (car sxml))
-                      ">"
-                      ))))
+                      ">"))))
             (else
-              (error "ERROR:invalid sxml" sxml))
-            ))
-       )
-     ))
-
+              (error "ERROR:invalid sxml" sxml)))))))
